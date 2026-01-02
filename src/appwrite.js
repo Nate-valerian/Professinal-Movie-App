@@ -45,3 +45,13 @@ export const getTrendingMovies = async () => {
     console.log(error);
   }
 };
+
+// /**
+//  * @type {import("appwrite").Databases}
+//  */
+// export const databases = new Databases(client);
+
+// /**
+//  * @type {import("appwrite").Account}
+//  */
+// export const account = new Account(client);

@@ -3,7 +3,7 @@ import Search from './components/Search.jsx'
 import Spinner from './components/Spinner.jsx'
 import MovieCard from './components/MovieCard.jsx'
 import { useDebounce } from 'react-use'
-import { getTredingMovies, updateSearchCount } from './appwrite.js'
+import { getTrendingMovies, updateSearchCount } from './appwrite.js'
 
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
@@ -26,7 +26,7 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const [getTredingMovies, setGetTredingMovies] = useState([]);
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
   useDebounce(() => setDebounceSearchTerm(searchTerm), 500, [searchTerm]);
 
@@ -66,11 +66,11 @@ const App = () => {
     }
   };
 
-  const loadTredingMovies = async () => {
+  const loadTrendingMovies = async () => {
     try {
-      const movies = await getTredingMovies();
+      const movies = await getTrendingMovies();
 
-      setGetTredingMovies(movies);
+      setTrendingMovies(movies);
     } catch (error) {
       console.error(`Error fetching movies: ${error}`);
     }
@@ -81,7 +81,7 @@ const App = () => {
   }, [debounceSeearchTerm]);
 
   useEffect(() => {
-    loadTredingMovies();
+    loadTrendingMovies();
   }, []);
 
   return (
@@ -99,8 +99,8 @@ const App = () => {
           />
         </header>
 
-        {getTredingMovies.length > 0 && (
-          <section className="treding-movies">
+        {trendingMovies.length > 0 && (
+          <section className="treding">
             <h2>Trending Movies</h2>
 
             <ul>
