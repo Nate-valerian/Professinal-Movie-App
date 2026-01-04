@@ -1,68 +1,67 @@
-import { useEffect, useState } from 'react';
-import Search from './components/Search.jsx'
-import Spinner from './components/Spinner.jsx'
-import MovieCard from './components/MovieCard.jsx'
-import { useDebounce } from 'react-use'
-import { getTrendingMovies, updateSearchCount } from './appwrite.js'
+import { useEffect, useState } from "react";
+import Search from "./components/Search.jsx";
+import Spinner from "./components/Spinner.jsx";
+import MovieCard from "./components/MovieCard.jsx";
+import { useDebounce } from "react-use";
+import { getTrendingMovies, updateSearchCount } from "./appwrite.js";
 
-
-const API_BASE_URL = 'https://api.themoviedb.org/3';
+const API_BASE_URL = "https://api.themoviedb.org/3";
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const API_OPTIONS = {
-  method: 'GET',
+  method: "GET",
   header: {
-    accept: 'application/json',
-    Authorization: `Bearer ${API_KEY}`
-  }
-}
+    accept: "application/json",
+    Authorization: `Bearer ${API_KEY}`,
+  },
+};
 
 const App = () => {
-  const [debounceSeearchTerm, setDebounceSearchTerm] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [debounceSearchTerm, setDebounceSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const[movieList, setMovieList] = useState([]);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [movieList, setMovieList] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const [trendingMovies, setTrendingMovies] = useState([]);
 
   useDebounce(() => setDebounceSearchTerm(searchTerm), 500, [searchTerm]);
 
-  const fetchMovies = async (query = '') => {
+  const fetchMovies = async (query = "") => {
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
       const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${query}&api_key=${API_KEY}`
-        : `${API_BASE_URL}/movie/popular?api_key=${API_KEY}`;
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
 
       const response = await fetch(endpoint, API_OPTIONS);
 
-      if(!response.ok) {
-        throw new Error('Something went wrong');
+      if (!response.ok) {
+        throw new Error("Something went wrong");
       }
 
       const data = await response.json();
 
-      if(data.Response === 'error') {
-        setErrorMessage(data.Error || 'Something went wrong');
+      if (data.Response === "False") {
+        setErrorMessage(data.Error || "Something went wrong");
         setMovieList([]);
         return;
       }
 
-      setMovieList(data.results||[]);
+      setMovieList(data.results || []);
 
-      if(query && data.results.length > 0) {
-        await updateSearchCount(query, data.results.[0]);
+      if (query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
       }
     } catch (error) {
-       console.error(`Error fetching movies: ${error}`);
-       setErrorMessage('Something went wrong. Please try again later.');
-      } finally {
-        setIsLoading(false);
+      console.error(`Error fetching movies: ${error}`);
+      setErrorMessage("Something went wrong. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -70,15 +69,16 @@ const App = () => {
     try {
       const movies = await getTrendingMovies();
 
-      setTrendingMovies(movies);
+      setTrendingMovies(movies || []);
     } catch (error) {
       console.error(`Error fetching movies: ${error}`);
+      setTrendingMovies([]);
     }
   };
 
   useEffect(() => {
-    fetchMovies(debounceSeearchTerm);
-  }, [debounceSeearchTerm]);
+    fetchMovies(debounceSearchTerm);
+  }, [debounceSearchTerm]);
 
   useEffect(() => {
     loadTrendingMovies();
@@ -86,11 +86,14 @@ const App = () => {
 
   return (
     <main>
-      <div className="pattern"/>
+      <div className="pattern" />
       <div className="wrapper">
         <header>
           <img src="./hero.png" alt="Hero Banner" />
-          <h1>Find <span className = "text-gradient">Movies</span> You'll Enjoy Without the Hassle </h1>
+          <h1>
+            Find <span className="text-gradient">Movies</span> You'll Enjoy
+            Without the Hassle{" "}
+          </h1>
 
           <Search
             searchTerm={searchTerm}
@@ -98,9 +101,23 @@ const App = () => {
             fetchMovies={fetchMovies}
           />
         </header>
+        {/*
+        {Array.isArray(trendingMovies) && trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title || "Movie"} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )} */}
 
         {trendingMovies.length > 0 && (
-          <section className="treding">
+          <section className="trending">
             <h2>Trending Movies</h2>
 
             <ul>
@@ -108,12 +125,11 @@ const App = () => {
                 <li key={movie.$id}>
                   <p>{index + 1}</p>
                   <img src={movie.poster_url} alt={movie.title} />
-                  </li>
+                </li>
               ))}
             </ul>
           </section>
         )}
-
 
         <section className="all-movies">
           <h2>All Movies</h2>
@@ -122,7 +138,7 @@ const App = () => {
             <Spinner />
           ) : errorMessage ? (
             <p className="text-red-500">{errorMessage}</p>
-            ) : (
+          ) : (
             <ul>
               {movieList.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
@@ -133,7 +149,5 @@ const App = () => {
       </div>
     </main>
   );
-}
+};
 export default App;
-
-

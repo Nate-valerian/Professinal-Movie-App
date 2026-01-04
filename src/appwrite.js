@@ -1,24 +1,31 @@
-import { Client, Databases, ID, Query } from 'appwrite';
+import { Client, Databases, ID, Query } from "appwrite";
 
-const PROJECCT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
 const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID;
+const COLLECTION_ID = import.meta.env.VITE_APPWRITE_TABLE_ID;
+const ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT;
 
+// Initialize Client
 const client = new Client()
-  .setEndpoint('https://fra.cloud.appwrite.io/v1')
-  .setProject(PROJECCT_ID);
+  .setEndpoint(ENDPOINT) // Use the correct endpoint from env
+  .setProject(PROJECT_ID);
 
 const database = new Databases(client);
+
+// Helper function to handle API errors
+const handleAppwriteError = (error) => {
+  console.error("Appwrite Error:", error);
+  throw error; // Re-throw for the calling function to handle
+};
 
 export const updateSearchCount = async (searchTerm, movie) => {
   try {
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('searchTerm', searchTerm),
+      Query.equal("searchTerm", searchTerm),
     ]);
 
     if (result.documents.length > 0) {
       const doc = result.documents[0];
-
       await database.updateDocument(DATABASE_ID, COLLECTION_ID, doc.$id, {
         count: doc.count + 1,
       });
@@ -27,31 +34,55 @@ export const updateSearchCount = async (searchTerm, movie) => {
         searchTerm,
         count: 1,
         movie_id: movie.id,
+        title: movie.title, // Add title for display
         poster_url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
       });
     }
   } catch (error) {
-    console.log(error);
+    handleAppwriteError(error);
   }
 };
 
 export const getTrendingMovies = async () => {
   try {
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('trending', true),
+      Query.limit(5),
+      Query.orderDesc("count"),
     ]);
-    return result.documents;
+
+    return result?.documents || [];
   } catch (error) {
-    console.log(error);
+    handleAppwriteError(error);
+    return []; // Return empty array to prevent crashes
   }
 };
 
-// /**
-//  * @type {import("appwrite").Databases}
-//  */
-// export const databases = new Databases(client);
+// export const getTrendingMovies = async () => {
+//   try {
+//     console.log("Fetching trending (most searched) movies...");
 
-// /**
-//  * @type {import("appwrite").Account}
-//  */
-// export const account = new Account(client);
+//     // Get documents with count > 0, sorted by count descending
+//     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+//       Query.greaterThan("count", 0), // Only get documents that have been searched
+//       Query.orderDesc("count"), // Most searched first
+//       Query.limit(5), // Top 5
+//     ]);
+
+//     console.log("Trending movies found:", result?.documents?.length || 0);
+
+//     // Log each movie for debugging
+//     if (result.documents && result.documents.length > 0) {
+//       console.log("Trending movies list:");
+//       result.documents.forEach((doc, index) => {
+//         console.log(
+//           `${index + 1}. "${doc.searchTerm}" - Searched ${doc.count} times`
+//         );
+//       });
+//     }
+
+//     return result?.documents || [];
+//   } catch (error) {
+//     console.error("Error fetching trending movies:", error);
+//     return []; // Return empty array on error
+//   }
+// };
