@@ -11,7 +11,7 @@ const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const API_OPTIONS = {
   method: "GET",
-  header: {
+  headers: {
     accept: "application/json",
     Authorization: `Bearer ${API_KEY}`,
   },
@@ -35,10 +35,19 @@ const App = () => {
 
     try {
       const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&api_key=${API_KEY}`
+        : `${API_BASE_URL}/movie/popular?api_key=${API_KEY}`;
 
-      const response = await fetch(endpoint, API_OPTIONS);
+      // const response = await fetch(endpoint, API_OPTIONS);
+      console.log("API Endpoint:", endpoint);
+
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${API_KEY}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Something went wrong");
@@ -46,7 +55,7 @@ const App = () => {
 
       const data = await response.json();
 
-      if (data.Response === "False") {
+      if (data.Response === "Error") {
         setErrorMessage(data.Error || "Something went wrong");
         setMovieList([]);
         return;
@@ -101,7 +110,7 @@ const App = () => {
             fetchMovies={fetchMovies}
           />
         </header>
-        {/*
+
         {Array.isArray(trendingMovies) && trendingMovies.length > 0 && (
           <section className="trending">
             <h2>Trending Movies</h2>
@@ -114,9 +123,9 @@ const App = () => {
               ))}
             </ul>
           </section>
-        )} */}
+        )}
 
-        {trendingMovies.length > 0 && (
+        {/* {trendingMovies.length > 0 && (
           <section className="trending">
             <h2>Trending Movies</h2>
 
@@ -129,7 +138,7 @@ const App = () => {
               ))}
             </ul>
           </section>
-        )}
+        )} */}
 
         <section className="all-movies">
           <h2>All Movies</h2>
