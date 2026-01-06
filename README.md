@@ -23,12 +23,6 @@ A React application for searching movies using TMDB API with trending functional
 - TMDB API key (free from [TMDB](https://www.themoviedb.org/settings/api))
 - Supabase account (free from [Supabase](https://supabase.com))
 
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/nate-valerian/React-Movie.App.git
-cd React-Movie.App
 
 
 
